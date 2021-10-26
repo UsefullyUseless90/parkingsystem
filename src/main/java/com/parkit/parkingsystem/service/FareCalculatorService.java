@@ -36,16 +36,16 @@ public class FareCalculatorService {
                 ticket.setPrice(duration * Fare.CAR_RATE_PER_HOUR);
                 break;
             }
-            case CAR: {
+            case KNOWNCAR: {
                 ticket.getVehicleRegNumber(); // If reg number is know in DB//
-                ticket.setPrice(duration * Fare.CAR_RATE_PER_HOUR - (Fare.CAR_RATE_PER_HOUR * 0.05)); // 5% applied//
+                ticket.setPrice(duration * Fare.CAR_RATE_PER_HOUR - (Fare.CAR_RATE_PER_HOUR * 0.05 )); // 5% applied//
                 break;
             }
             case BIKE: {
                 ticket.setPrice(duration * Fare.BIKE_RATE_PER_HOUR);
                 break;
             }
-            case BIKE: {
+            case KNOWNBIKE: {
                 ticket.getVehicleRegNumber(); // If reg number is know in DB//
                 ticket.setPrice(duration * Fare.BIKE_RATE_PER_HOUR - (Fare.BIKE_RATE_PER_HOUR * 0.05)); // 5% applied//
             }
