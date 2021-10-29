@@ -86,4 +86,23 @@ public class TicketDAO {
         }
         return false;
     }
+    public int howManyTimesYouVeBeenParked (String vehicleRegNumber) {
+        Connection con = null;
+        try {
+            con = dataBaseConfig.getConnection();
+            PreparedStatement ps = con.prepareStatement(DBConstants.GET_HISTORY_NUMBER);
+            ps.setString(1, vehicleRegNumber);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()){
+               return rs.getInt(1);
+            }
+
+        } catch (Exception ex) {
+
+        } finally {
+            dataBaseConfig.closeConnection(con);
+        }
+        return 0;
+    }
 }
