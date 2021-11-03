@@ -25,7 +25,7 @@ public class InteractiveShell {
             int option = inputReaderUtil.readSelection();
             switch(option){
                 case 1: {
-                    parkingService.processIncomingVehicle();
+                    parkingService.processIncomingVehicle(inTime);
                     break;
                 }
                 case 2: {
