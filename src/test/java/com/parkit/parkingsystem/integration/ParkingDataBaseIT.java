@@ -53,7 +53,7 @@ public class ParkingDataBaseIT {
 
     @AfterAll
     private static void tearDown() {
-
+        dataBasePrepareService.clearDataBaseEntries();
     }
 
     @Test
@@ -65,27 +65,26 @@ public class ParkingDataBaseIT {
         assertNotNull(ticketTest);
         assertEquals(vehicleFakeRegNumber, ticketTest.getVehicleRegNumber());
         assertFalse(ticketTest.getParkingSpot().isAvailable());
-        //TODO: check that a ticket is actually saved in DB and Parking table is updated with availability
     }
 
 
     @Test
     public void testParkingLotExit() {
         testParkingACar();
+        TicketDAO TD = new TicketDAO();
         ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
         parkingService.processExitingVehicle();
-        Ticket ticketTest = TicketDAO.getTicket(vehicleFakeRegNumber);
+        Ticket ticketTest = TD.getTicket(vehicleFakeRegNumber);
         assertNotNull(ticketTest);
         checkCalculateFareFromDB(ticketTest);
         assertTrue(ticketTest.getPaid());
         assertTrue(ticketTest.getParkingSpot().isAvailable());
-        //TODO: check that the fare generated and out time are populated correctly in the database
     }
-
+    @Test
     public void checkCalculateFareFromDB(Ticket ticketTest) {
         switch (ticketTest.getParkingSpot().getParkingType()) {
             case CAR: {
-                if (ticketDAO.howManyTimesYouVeBeenParked(vehicleFakeRegNumber, 5)) {
+                if (ticketDAO.howManyTimesYouVeBeenParked(vehicleFakeRegNumber) >=5) {
                     checkCalculateRegularCarUsersFarFromDB(ticketTest);
                 } else {
                     checkCalculateCarFareFromDB(ticketTest);
@@ -93,32 +92,36 @@ public class ParkingDataBaseIT {
                 break;
             }
             case BIKE: {
+                if (ticketDAO.howManyTimesYouVeBeenParked(vehicleFakeRegNumber) >=5) {
+                    checkCalculateRegularCarUsersFarFromDB(ticketTest);
+                } else {
+                    checkCalculateCarFareFromDB(ticketTest);
+                }
             }
             break;
         }
     }
-
-
+    @Test
     private void checkCalculateRegularCarUsersFarFromDB(Ticket ticketTest) {
         double price;
         if (ParkingTime <= 30) {
             price = 0;
         } else if (ParkingTime < 60) {
-            price = (ParkingTime * 0.025) * 0.95;
+            price = (ParkingTime * 0.025) * 0.95;// 0.025 is the price of a minute
         } else {
-            price = ((double) (ParkingTime / 60) * CAR_RATE_PER_HOUR) * 0.95;
+            price = ((ParkingTime / 60) * CAR_RATE_PER_HOUR) * 0.95;
         }
         assertEquals(price, ticketTest.getPrice());
     }
-
+    @Test
     public void checkCalculateCarFareFromDB(Ticket ticketTest) {
         double price;
         if (ParkingTime <= 30) {
             price = 0;
         } else if (ParkingTime < 60) {
-            price = ParkingTime * 0.025;
+            price = ParkingTime * 0.025;// 0.025 is the price of a minute
         } else {
-            price = (double) (ParkingTime / 60) * CAR_RATE_PER_HOUR;
+            price = ((ParkingTime / 60) * CAR_RATE_PER_HOUR);
         }
         assertEquals(price, ticketTest.getPrice());
     }

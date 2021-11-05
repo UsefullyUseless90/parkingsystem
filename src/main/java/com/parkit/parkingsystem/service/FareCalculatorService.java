@@ -31,7 +31,7 @@ public class FareCalculatorService{
             case CAR: {
                 double fare = duration * Fare.CAR_RATE_PER_HOUR;
                 TicketDAO TA = new TicketDAO();
-                if (TA.howManyTimesYouVeBeenParked(ticket.getVehicleRegNumber(), 5)>5){
+                if (TA.howManyTimesYouVeBeenParked(ticket.getVehicleRegNumber()) >=5){
                     fare = 0.95 * fare;
                 }
                 ticket.setPrice(fare);
@@ -41,7 +41,7 @@ public class FareCalculatorService{
             case BIKE: {
                 double fare = duration * Fare.BIKE_RATE_PER_HOUR;
                 TicketDAO TA = new TicketDAO();
-                if (TA.howManyTimesYouVeBeenParked(ticket.getVehicleRegNumber(), 5)>5){
+                if (TA.howManyTimesYouVeBeenParked(ticket.getVehicleRegNumber()) >=5){
                     fare = 0.95 * fare;
                 }
                 ticket.setPrice(fare);

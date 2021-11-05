@@ -86,7 +86,7 @@ public class TicketDAO {
         }
         return false;
     }
-    public boolean howManyTimesYouVeBeenParked(String vehicleRegNumber, int i) {
+    public int howManyTimesYouVeBeenParked(String vehicleRegNumber) {
         Connection con = null;
         try {
             con = dataBaseConfig.getConnection();
