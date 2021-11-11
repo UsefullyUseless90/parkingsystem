@@ -4,52 +4,50 @@ import com.parkit.parkingsystem.constants.Fare;
 import com.parkit.parkingsystem.dao.TicketDAO;
 import com.parkit.parkingsystem.model.Ticket;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
-public class FareCalculatorService{
-    @Override
-    public int hashCode() {
-        return super.hashCode();
-    }
+public class FareCalculatorService {
 
-    public void calculateFare(Ticket ticket){
+    public void calculateFare(Ticket ticket, TicketDAO ticketDao) {
 
-        if( (ticket.getOutTime() == null) || (ticket.getOutTime().before(ticket.getInTime())) ){
-            throw new IllegalArgumentException("Out time provided is incorrect:"+ticket.getOutTime().toString());
+        if ((ticket.getOutTime() == null) || (ticket.getOutTime().isBefore(ticket.getInTime()))) {
+            throw new IllegalArgumentException("Out time provided is incorrect:" + ticket.getOutTime().toString());
         }
 
-        double inHour = ticket.getInTime().getTime();
-        double outHour = ticket.getOutTime().getTime();
+        LocalDateTime inHour = ticket.getInTime();
+        LocalDateTime outHour = ticket.getOutTime();
 
-        double duration = (outHour - inHour) /1000 /3600;
+        // TODO: Some tests are failing here. Need to check if this logic is correct
+        long duration = ChronoUnit.SECONDS.between(inHour, outHour);
 
-        if (duration < 0.5) {
+        // duration set to zero if less than 30 minutes
+        if (duration < 30 * 60) {
             duration = 0;
-
         }
-        switch (ticket.getParkingSpot().getParkingType()) {
 
+        switch (ticket.getParkingSpot().getParkingType()) {
             case CAR: {
-                double fare = duration * Fare.CAR_RATE_PER_HOUR;
-                TicketDAO TA = new TicketDAO();
-                if (TA.howManyTimesYouVeBeenParked(ticket.getVehicleRegNumber()) >=5){
-                    fare = 0.95 * fare;
-                }
-                ticket.setPrice(fare);
+                ticket.setPrice((duration * Fare.CAR_RATE_PER_HOUR) / 3600);
+                applyDiscount(ticket.getPrice(), ticket);
                 break;
             }
-
             case BIKE: {
-                double fare = duration * Fare.BIKE_RATE_PER_HOUR;
-                TicketDAO TA = new TicketDAO();
-                if (TA.howManyTimesYouVeBeenParked(ticket.getVehicleRegNumber()) >=5){
-                    fare = 0.95 * fare;
-                }
-                ticket.setPrice(fare);
+                ticket.setPrice((duration * Fare.BIKE_RATE_PER_HOUR) / 3600);
+                applyDiscount(ticket.getPrice(), ticket);
                 break;
             }
             default:
                 throw new IllegalArgumentException("Unknown Parking Type");
+        }
     }
-}
-}
 
+    public void applyDiscount(double price, Ticket ticket) {
+        if (ticket.isDiscountPrice()) {
+            double discount = (price * 5) / 100;
+            price = price - discount;
+        }
+        ticket.setPrice(price);
+    }
+
+}

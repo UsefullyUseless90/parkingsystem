@@ -1,24 +1,23 @@
 package com.parkit.parkingsystem.integration;
 
+import com.parkit.parkingsystem.constants.ParkingType;
 import com.parkit.parkingsystem.dao.ParkingSpotDAO;
 import com.parkit.parkingsystem.dao.TicketDAO;
 import com.parkit.parkingsystem.integration.config.DataBaseTestConfig;
 import com.parkit.parkingsystem.integration.service.DataBasePrepareService;
+import com.parkit.parkingsystem.model.ParkingSpot;
 import com.parkit.parkingsystem.model.Ticket;
 import com.parkit.parkingsystem.service.ParkingService;
 import com.parkit.parkingsystem.util.InputReaderUtil;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 
-import static com.parkit.parkingsystem.constants.Fare.CAR_RATE_PER_HOUR;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,9 +28,7 @@ public class ParkingDataBaseIT {
     private static TicketDAO ticketDAO;
     private static DataBasePrepareService dataBasePrepareService;
 
-    private static double ParkingTime = 60; // Expressed in minutes
     private static final String vehicleFakeRegNumber = "ABCDEF";
-
     @Mock
     private static InputReaderUtil inputReaderUtil;
 
@@ -49,81 +46,58 @@ public class ParkingDataBaseIT {
         when(inputReaderUtil.readSelection()).thenReturn(1);
         when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn(vehicleFakeRegNumber);
         dataBasePrepareService.clearDataBaseEntries();
+
     }
 
     @AfterAll
     private static void tearDown() {
-        dataBasePrepareService.clearDataBaseEntries();
     }
 
     @Test
-    public void testParkingACar() {
-        Date inTime = new Date((long) (System.currentTimeMillis() - ParkingTime * 60 * 1000));
+    public void testParkingACar() throws Exception {
         ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
-        parkingService.processIncomingVehicle(inTime);
-        Ticket ticketTest = ticketDAO.getTicket(vehicleFakeRegNumber);
-        assertNotNull(ticketTest);
-        assertEquals(vehicleFakeRegNumber, ticketTest.getVehicleRegNumber());
-        assertFalse(ticketTest.getParkingSpot().isAvailable());
+        // DP : récuperer le no de la prochaine place disponible pour une
+        // voiture
+        int next = parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR);
+
+        parkingService.processIncomingVehicle();
+        // TODO: check that a ticket is actually saved in DB and Parking table is
+        // updated with availability
+
+        // Etape 1 : récupérer le ticket du véhicule immatriculé "ABCDEF" ==>
+        // mocké
+        Ticket ticket = ticketDAO.getTicket(vehicleFakeRegNumber);
+
+        // Etape 2 : vérifier l'existence du ticket
+        Assertions.assertNotNull(ticket);
+
+        // Etape 3 : récupérer l'ID de parking (parkingSpot) et vérifier son
+        // existence
+        ParkingSpot parkingSpot = ticket.getParkingSpot();
+        Assertions.assertNotNull(parkingSpot);
+
+        // Etape 4 : vérifier que l'état de la colonne AVAILABLE = FALSE (place
+        // n'est plus disponible)
+        Assertions.assertFalse(parkingSpot.isAvailable());
+
+        // Etape 5 : vérifier que la place qui était disponible soit bien celle
+        // retournée
+        Assertions.assertEquals(next, parkingSpot.getId());
     }
 
-
     @Test
-    public void testParkingLotExit() {
-        testParkingACar();
-        TicketDAO TD = new TicketDAO();
+    public void testParkingLotExit() throws Exception {
         ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
+        Date outTime = new Date();
+
+        parkingService.processIncomingVehicle();
+        Ticket ticket = ticketDAO.getTicket(vehicleFakeRegNumber);
+        Assertions.assertNotNull(ticket);
         parkingService.processExitingVehicle();
-        Ticket ticketTest = TD.getTicket(vehicleFakeRegNumber);
-        assertNotNull(ticketTest);
-        checkCalculateFareFromDB(ticketTest);
-        assertTrue(ticketTest.getPaid());
-        assertTrue(ticketTest.getParkingSpot().isAvailable());
-    }
-    @Test
-    public void checkCalculateFareFromDB(Ticket ticketTest) {
-        switch (ticketTest.getParkingSpot().getParkingType()) {
-            case CAR: {
-                if (ticketDAO.howManyTimesYouVeBeenParked(vehicleFakeRegNumber) >=5) {
-                    checkCalculateRegularCarUsersFarFromDB(ticketTest);
-                } else {
-                    checkCalculateCarFareFromDB(ticketTest);
-                }
-                break;
-            }
-            case BIKE: {
-                if (ticketDAO.howManyTimesYouVeBeenParked(vehicleFakeRegNumber) >=5) {
-                    checkCalculateRegularCarUsersFarFromDB(ticketTest);
-                } else {
-                    checkCalculateCarFareFromDB(ticketTest);
-                }
-            }
-            break;
-        }
-    }
-    @Test
-    private void checkCalculateRegularCarUsersFarFromDB(Ticket ticketTest) {
-        double price;
-        if (ParkingTime <= 30) {
-            price = 0;
-        } else if (ParkingTime < 60) {
-            price = (ParkingTime * 0.025) * 0.95;// 0.025 is the price of a minute
-        } else {
-            price = ((ParkingTime / 60) * CAR_RATE_PER_HOUR) * 0.95;
-        }
-        assertEquals(price, ticketTest.getPrice());
-    }
-    @Test
-    public void checkCalculateCarFareFromDB(Ticket ticketTest) {
-        double price;
-        if (ParkingTime <= 30) {
-            price = 0;
-        } else if (ParkingTime < 60) {
-            price = ParkingTime * 0.025;// 0.025 is the price of a minute
-        } else {
-            price = ((ParkingTime / 60) * CAR_RATE_PER_HOUR);
-        }
-        assertEquals(price, ticketTest.getPrice());
-    }
+        ticket.setInTime(LocalDateTime.now(ZoneId.systemDefault()).minusHours(1));
+        ticket.setOutTime(LocalDateTime.now(ZoneId.systemDefault()));
+        Assertions.assertNotNull(ticket.getOutTime());
+        Assertions.assertEquals(0, ticket.getPrice());
 
+    }
 }
