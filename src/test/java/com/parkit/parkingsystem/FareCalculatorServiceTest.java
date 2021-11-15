@@ -82,8 +82,8 @@ public class FareCalculatorServiceTest {
 
     @Test
     public void calculateFareBikeWithFutureInTime() {
-        LocalDateTime inTime = LocalDateTime.now(ZoneId.systemDefault()).minusHours(1);
-        LocalDateTime outTime = LocalDateTime.now(ZoneId.systemDefault());
+        LocalDateTime inTime = LocalDateTime.now(ZoneId.systemDefault());
+        LocalDateTime outTime = LocalDateTime.now(ZoneId.systemDefault()).minusHours(1);
 
         ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.BIKE, false);
 
@@ -134,6 +134,33 @@ public class FareCalculatorServiceTest {
         ticket.setParkingSpot(parkingSpot);
         fareCalculatorService.calculateFare(ticket, ticketDao);
         assertEquals((25 * Fare.CAR_RATE_PER_HOUR), ticket.getPrice());
+    }
+    @Test
+    public void calculateFareCarForThirtyMinutesParkingTime() {
+        LocalDateTime inTime = LocalDateTime.now(ZoneId.systemDefault()).minusMinutes(30);
+        LocalDateTime outTime = LocalDateTime.now(ZoneId.systemDefault());
+
+        ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, false);
+
+        ticket.setInTime(inTime);
+        ticket.setOutTime(outTime);
+        ticket.setParkingSpot(parkingSpot);
+        fareCalculatorService.calculateFare(ticket, ticketDao);
+        assertEquals((0.5 * Fare.CAR_RATE_PER_HOUR), ticket.getPrice());
+    }
+
+    @Test
+    public void calculateFareBikeForThirtyMinutesParkingTime() {
+        LocalDateTime inTime = LocalDateTime.now(ZoneId.systemDefault()).minusMinutes(30);
+        LocalDateTime outTime = LocalDateTime.now(ZoneId.systemDefault());
+
+        ParkingSpot parkingSpot = new ParkingSpot(4, ParkingType.BIKE, false);
+
+        ticket.setInTime(inTime);
+        ticket.setOutTime(outTime);
+        ticket.setParkingSpot(parkingSpot);
+        fareCalculatorService.calculateFare(ticket, ticketDao);
+        assertEquals((0.5 * Fare.BIKE_RATE_PER_HOUR), ticket.getPrice());
     }
 
     @Test
