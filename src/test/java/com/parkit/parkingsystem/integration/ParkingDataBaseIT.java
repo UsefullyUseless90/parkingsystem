@@ -114,7 +114,7 @@ public class ParkingDataBaseIT {
         Ticket ticket = ticketDAO.getTicket(vehicleFakeRegNumber);
         ticket.setInTime(LocalDateTime.now(ZoneId.systemDefault()).minusMinutes(29));
         ticket.setOutTime(LocalDateTime.now(ZoneId.systemDefault()));
-        Assertions.assertEquals(Fare.CAR_RATE_PER_HOUR, ticket.getPrice());
+        Assertions.assertEquals(Fare.CAR_RATE_PER_HOUR,ticket.getPrice());
     }
 
 }
