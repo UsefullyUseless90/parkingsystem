@@ -55,66 +55,67 @@ public class ParkingDataBaseIT {
 
     @Test
     public void testParkingACar() throws Exception {
-        ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
+        ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);//Create new object with parameters assigned
 
-        int next = parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR);
+        int next = parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR);// Looking for an available parking spot
+        parkingService.processIncomingVehicle();//This treats the vehicle that comes to park
 
-        parkingService.processIncomingVehicle();
+        Ticket ticket = ticketDAO.getTicket(vehicleFakeRegNumber);// Create a new object assigning a method's class and a parameter
+        Assertions.assertNotNull(ticket);// Verify that there's actually a ticket
 
-        Ticket ticket = ticketDAO.getTicket(vehicleFakeRegNumber);
-        Assertions.assertNotNull(ticket);
-
-        ParkingSpot parkingSpot = ticket.getParkingSpot();
-        Assertions.assertNotNull(parkingSpot);
-        Assertions.assertFalse(parkingSpot.isAvailable());
-        Assertions.assertEquals(next, parkingSpot.getId());
+        ParkingSpot parkingSpot = ticket.getParkingSpot();//Assigning to the object a class's method
+        Assertions.assertNotNull(parkingSpot);//Make sure that the parking spot exists
+        Assertions.assertFalse(parkingSpot.isAvailable());//Make sure that the parking spot is free
+        Assertions.assertEquals(next, parkingSpot.getId());//Make sure that the parking spot located
     }
 
     @Test
     public void testParkingLotExit() throws Exception {
-        ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
+        ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);//Create new object with parameters assigned
 
-        parkingService.processIncomingVehicle();
-        Ticket ticket = ticketDAO.getTicket(vehicleFakeRegNumber);
-        Assertions.assertNotNull(ticket);
-        parkingService.processExitingVehicle();
-        ticket.setInTime(LocalDateTime.now(ZoneId.systemDefault()).minusHours(1));
-        ticket.setOutTime(LocalDateTime.now(ZoneId.systemDefault()));
-        Assertions.assertNotNull(ticket.getOutTime());
-        Assertions.assertEquals(0, ticket.getPrice());
+        parkingService.processIncomingVehicle();//This treats the vehicle that comes to park
+        Ticket ticket = ticketDAO.getTicket(vehicleFakeRegNumber);// Create a new object assigning a method's class and a parameter
+        Assertions.assertNotNull(ticket);// Verify that there's actually a ticket
+        parkingService.processExitingVehicle();//This treats the vehicle that comes to park
+        ticket.setInTime(LocalDateTime.now(ZoneId.systemDefault()).minusHours(1));//Minus 1 hour means that we get 1 hour back
+        ticket.setOutTime(LocalDateTime.now(ZoneId.systemDefault()));//Takes the current hour so it counts difference of when it entered and when it gets out
+        Assertions.assertNotNull(ticket.getOutTime());//Verify that there's a ticket with an out time generated in DB
+        Assertions.assertEquals(0, ticket.getPrice());//Making sure that the correct price is applied
     }
+
     @Test
     public void testParkingABike() {
         ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
-        parkingService.processIncomingVehicle();
-        Ticket ticket = ticketDAO.getTicket(vehicleFakeRegNumber);
+        parkingService.processIncomingVehicle();//This treats the vehicle that comes to park
+        Ticket ticket = ticketDAO.getTicket(vehicleFakeRegNumber);// Create a new object assigning a class's method  and a parameter
 
-        Assertions.assertNotNull(ticket);
-        Assertions.assertEquals(4, parkingSpotDAO.getNextAvailableSlot(ParkingType.BIKE));
+        Assertions.assertNotNull(ticket);// Verify that there's actually a ticket
+        Assertions.assertEquals(4, parkingSpotDAO.getNextAvailableSlot(ParkingType.BIKE));//Making sure that the correct price is applied
     }
 
     @Test
     public void testParkingLotExitBike() {
-        ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
-        parkingService.processIncomingVehicle();
-        parkingService.processExitingVehicle();
+        ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);//Create new object with parameters assigned
+        parkingService.processIncomingVehicle();//This treats the vehicle that comes to park
+        parkingService.processExitingVehicle();//This treats the same vehicle that comes out
 
-        Ticket ticket = ticketDAO.getTicket(vehicleFakeRegNumber);
-        ticket.setInTime(LocalDateTime.now(ZoneId.systemDefault()).minusHours(1));
-        ticket.setOutTime(LocalDateTime.now(ZoneId.systemDefault()));
-        Assertions.assertNotNull(ticket.getPrice());
-        Assertions.assertNotNull(ticket.getOutTime());
+        Ticket ticket = ticketDAO.getTicket(vehicleFakeRegNumber);// Create a new object assigning a method's class and a parameter
+        ticket.setInTime(LocalDateTime.now(ZoneId.systemDefault()).minusHours(1));//Minus 1 hour means that we get 1 hour back
+        ticket.setOutTime(LocalDateTime.now(ZoneId.systemDefault()));//Takes the current hour so it counts difference of when it entered and when it gets out
+        Assertions.assertNotNull(ticket.getPrice());//Verify that there's a ticket with a price generated in DB
+        Assertions.assertNotNull(ticket.getOutTime());//Verify that there's a ticket with an out time generated in DB
 
     }
+
     @Test
-    public void FreeFareDataBaseTest(){
-        ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
-        parkingService.processIncomingVehicle();
-        parkingService.processExitingVehicle();
-        Ticket ticket = ticketDAO.getTicket(vehicleFakeRegNumber);
-        ticket.setInTime(LocalDateTime.now(ZoneId.systemDefault()).minusMinutes(29));
-        ticket.setOutTime(LocalDateTime.now(ZoneId.systemDefault()));
-        Assertions.assertEquals(Fare.CAR_RATE_PER_HOUR,ticket.getPrice());
+    public void FreeFareDataBaseTest() {
+        ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);//Create new object with parameters assigned
+        parkingService.processIncomingVehicle();//This treats the vehicle that comes to park
+        parkingService.processExitingVehicle();//This treats the same vehicle that comes out
+        Ticket ticket = ticketDAO.getTicket(vehicleFakeRegNumber);// Create a new object assigning a method's class and a parameter
+        ticket.setInTime(LocalDateTime.now(ZoneId.systemDefault()).minusMinutes(29));//Minus 29 minutes means that we get 29 minutes back
+        ticket.setOutTime(LocalDateTime.now(ZoneId.systemDefault()));//Takes the current hour so it counts difference of when it entered and when it gets out
+        Assertions.assertEquals(Fare.CAR_RATE_PER_HOUR, ticket.getPrice());//Making sure that the correct price is applied
     }
 
 }

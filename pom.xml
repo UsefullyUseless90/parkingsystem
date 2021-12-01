@@ -59,13 +59,25 @@
             <artifactId>maven-assembly-plugin</artifactId>
             <version>3.0.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.jacoco</groupId>
+            <artifactId>org.jacoco.report</artifactId>
+            <version>0.8.7</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.7.1</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.3.0</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -99,9 +111,6 @@
                     </dependency>
                 </dependencies>
                 <configuration>
-                    <excludes>
-                        <exclude>**/*IT.java</exclude>
-                    </excludes>
                 </configuration>
                 <executions>
                     <execution>
@@ -109,10 +118,9 @@
                         <goals>
                             <goal>test</goal>
                         </goals>
-                        <phase>integration-test</phase>
+                        <phase>test</phase>
                         <configuration>
                             <excludes>
-                                <exclude>none</exclude>
                             </excludes>
                             <includes>
                                 <include>**/*IT.java</include>
@@ -125,6 +133,15 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.5</version>
+                <configuration>
+                   <excludes>
+                       <exclude>com/parkit/parkingsystem/config/**</exclude>
+                       <exclude>com/parkit/parkingsystem/App.class</exclude>
+                       <exclude>com/parkit/parkingsystem/service/InteractiveShell.class</exclude>
+                       <exclude>com/parkit/parkingsystem/model/ParkingSpot.class</exclude>
+                       <exclude>com/parkit/parkingsystem/util/**</exclude>
+                   </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
@@ -139,16 +156,6 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-site-plugin</artifactId>
-                <version>3.9.0</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-project-info-reports-plugin</artifactId>
-                <version>3.1.1</version>
             </plugin>
         </plugins>
     </build>
