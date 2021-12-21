@@ -259,17 +259,5 @@ public class FareCalculatorServiceTest {
         assertEquals(ticket.isDiscountPrice(), true);// Making sure that the user is a regular
         assertEquals((Fare.BIKE_RATE_PER_HOUR - discount), ticket.getPrice());//Making sure that the correct price is applied
     }
-    @Test
-    // This verify how the fare is counted when a car is parked more than 30min
-    public void calculateFareCarWithABitMoreThanThirtyMinutesParkingTime() {
-        LocalDateTime inTime = LocalDateTime.now(ZoneId.systemDefault()).minusMinutes(24);// Minus 24 minutes means that we get 24 minutes back
-        LocalDateTime outTime = LocalDateTime.now(ZoneId.systemDefault());//Takes the current hour so it counts difference of when it entered and when it gets out
 
-        ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, false);// Creating Object and assigning parameters spot number, type, availability
-        ticket.setInTime(inTime);//Setting the time of entering
-        ticket.setOutTime(outTime);//Setting the time of exiting
-        ticket.setParkingSpot(parkingSpot);// Assigning a parking spot
-        fareCalculatorService.calculateFare(ticket, ticketDao);//Calculating price regarding the stay duration
-        assertEquals((0 * Fare.CAR_RATE_PER_HOUR), ticket.getPrice());//Making sure that the correct price is applied
-    }
 }

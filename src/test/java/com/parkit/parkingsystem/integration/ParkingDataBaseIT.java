@@ -115,7 +115,7 @@ public class ParkingDataBaseIT {
         Ticket ticket = ticketDAO.getTicket(vehicleFakeRegNumber);// Create a new object assigning a method's class and a parameter
         ticket.setInTime(LocalDateTime.now(ZoneId.systemDefault()).minusMinutes(29));//Minus 29 minutes means that we get 29 minutes back
         ticket.setOutTime(LocalDateTime.now(ZoneId.systemDefault()));//Takes the current hour so it counts difference of when it entered and when it gets out
-        Assertions.assertEquals(Fare.CAR_RATE_PER_HOUR, ticket.getPrice());//Making sure that the correct price is applied
+        Assertions.assertEquals(0 * Fare.CAR_RATE_PER_HOUR, ticket.getPrice());//Making sure that the correct price is applied
     }
 
 }

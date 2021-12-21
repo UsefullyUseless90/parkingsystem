@@ -34,12 +34,16 @@ public class ParkingService {
             ParkingSpot parkingSpot = getNextParkingNumberIfAvailable();
             if (parkingSpot != null && parkingSpot.getId() > 0) {
                 String vehicleRegNumber = getVehicleRegNumber();
+                Ticket ticket = ticketDAO.getTicket(vehicleRegNumber);
+                if (ticket!=null && ticket.getOutTime() == null){
+                    throw new IllegalArgumentException("It seems that your vehicle is currently registered as parked in our facility, in case you want to get out please press 2");
+                }
                 parkingSpot.setAvailable(false);
-                parkingSpotDAO.updateParking(parkingSpot);// allot this parking space and mark its availability as
+                parkingSpotDAO.updateParking(parkingSpot);// allocate this parking space and mark its availability as
                 // false
 
-                LocalDateTime inTime = LocalDateTime.now(ZoneId.systemDefault()).minusHours(1);
-                Ticket ticket = new Ticket();
+                LocalDateTime inTime = LocalDateTime.now(ZoneId.systemDefault());
+                ticket = new Ticket();
                 // ID, PARKING_NUMBER, VEHICLE_REG_NUMBER, PRICE, IN_TIME, OUT_TIME)
                 // ticket.setId(ticketID);
                 ticket.setParkingSpot(parkingSpot);
@@ -65,7 +69,8 @@ public class ParkingService {
     private String getVehicleRegNumber() throws Exception {
         System.out.println("Please type the vehicle registration number and press enter key");
         return inputReaderUtil.readVehicleRegistrationNumber();
-    }
+        }
+
 
     public ParkingSpot getNextParkingNumberIfAvailable() {
         int parkingNumber = 0;
@@ -111,10 +116,11 @@ public class ParkingService {
             Ticket ticket = ticketDAO.getTicket(vehicleRegNumber);
             LocalDateTime outTime = LocalDateTime.now(ZoneId.systemDefault());
             ticket.setOutTime(outTime);
-            System.out.println("processExitingVehicle!! : " + ticket.getOutTime());
+            System.out.println("You stayed until now : " + ticket.getOutTime());
             fareCalculatorService.calculateFare(ticket, ticketDAO);
 
             if (ticketDAO.updateTicket(ticket)) {
+                System.out.println(ticket.getParkingSpot().getId());
                 ParkingSpot parkingSpot = ticket.getParkingSpot();
                 parkingSpot.setAvailable(true);
                 parkingSpotDAO.updateParking(parkingSpot);
